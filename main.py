@@ -23,7 +23,7 @@ async def remove_user(uid):
     if uid in used_users:
         used_users.remove(uid)
 
-@bot.on(events.NewMessage(pattern="^[?!/]start$", func=lambda e: e.is_private))
+@bot.on(events.NewMessage(pattern="^[?!/]start$"))
 async def start_msg(e):
     try:
         p = await bot(functions.channels.GetParticipantRequest(e.chat_id, e.sender_id))
@@ -35,7 +35,7 @@ async def start_msg(e):
         start_cmd += "\n\nTo use the Bot You Have to join **[Piro Giveaways]**(https://t.me/Piro_giveaways)"
     await e.respond(start_cmd, buttons=Button.url("Join Channel", "https://t.me/Piro_giveaways") if not p else None)
 
-@bot.on(events.NewMessage(pattern="^[?!/]gen$", func=lambda e: e.is_private))
+@bot.on(events.NewMessage(pattern="^[?!/]gen$"))
 async def gen_account(e):
     try:
         await bot(functions.channels.GetParticipantRequest(e.chat_id, e.sender_id))
@@ -45,7 +45,11 @@ async def gen_account(e):
         return await e.respond("**You have already used your account today.**")
     msg = await e.respond("**Generating Account...**")
     ok = False
+    retry_count = 0
     while not ok:
+        retry_count += 1
+        if retry_count > 100:
+            return await msg.edit("**Failed To Generate Account.**")
         combo = combos[random.randint(0, len(combos) - 1)]
         if not combo in used_list:
             used_list.append(combo)
